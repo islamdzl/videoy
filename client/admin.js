@@ -1,4 +1,4 @@
-const ws = new WebSocket('ws://192.168.178.90:2007');
+const ws = new WebSocket('wss://https://sounder.onrender.com/');
 const audioPlayer = document.getElementById('audioPlayer');
 
 
