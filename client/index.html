@@ -3,8 +3,8 @@
 <head>
     <title>Audio Stream</title>
 </head>
-<body style="background-color: black; color: aliceblue;">
-    <h1>Audio Stream ISLAM DZL</h1>
+<body>
+    <h1>Audio Stream islam DZ</h1>
     <button id="start">Start Streaming</button>
     <button id="stop">Stop Streaming</button>
     <audio id="audioPlayer" controls></audio>
@@ -12,13 +12,29 @@
         const ws = new WebSocket('wss://sounder.onrender.com');
         const audioPlayer = document.getElementById('audioPlayer');
         let mediaRecorder;
-        let audioChunks = [];
+        let mediaSource;
+        let sourceBuffer;
+
+        ws.onopen = () => {
+            mediaSource = new MediaSource();
+            audioPlayer.src = URL.createObjectURL(mediaSource);
+
+            mediaSource.addEventListener('sourceopen', () => {
+                sourceBuffer = mediaSource.addSourceBuffer('audio/webm; codecs=opus');
+                sourceBuffer.mode = 'sequence';
+            });
+        };
 
         ws.onmessage = (event) => {
             const audioBlob = new Blob([event.data], { type: 'audio/webm' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            audioPlayer.src = audioUrl;
-            audioPlayer.play();
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                const arrayBuffer = reader.result;
+                sourceBuffer.appendBuffer(arrayBuffer);
+            };
+
+            reader.readAsArrayBuffer(audioBlob);
         };
 
         document.getElementById('start').addEventListener('click', async () => {
