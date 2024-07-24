@@ -7,9 +7,13 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 app.use(express.static('client'));
+app.get('/',(req,res)=>{
+    console.log('New Client!')
+    res.sendFile(__dirname + '//client//index.html')
+})
 app.get('/islam',(req,res)=>{
     console.log('New Client!')
-    res.sendFile(__dirname + '//client/index.html')
+    res.sendFile(__dirname + '//client//admin.html')
 })
 wss.on('connection', (ws) => {
     console.log('A user connected');

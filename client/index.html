@@ -1,56 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Audio Stream</title>
+    <title>Sounder</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <h1>Audio Stream islam DZ</h1>
-    <button id="start">Start Streaming</button>
-    <button id="stop">Stop Streaming</button>
-    <audio id="audioPlayer" controls></audio>
-    <script>
-        const ws = new WebSocket('wss://sounder.onrender.com');
-        const audioPlayer = document.getElementById('audioPlayer');
-        let mediaRecorder;
-        let mediaSource;
-        let sourceBuffer;
-
-        ws.onopen = () => {
-            mediaSource = new MediaSource();
-            audioPlayer.src = URL.createObjectURL(mediaSource);
-
-            mediaSource.addEventListener('sourceopen', () => {
-                sourceBuffer = mediaSource.addSourceBuffer('audio/webm; codecs=opus');
-                sourceBuffer.mode = 'sequence';
-            });
-        };
-
-        ws.onmessage = (event) => {
-            const audioBlob = new Blob([event.data], { type: 'audio/webm' });
-            const reader = new FileReader();
-
-            reader.onload = () => {
-                const arrayBuffer = reader.result;
-                sourceBuffer.appendBuffer(arrayBuffer);
-            };
-
-            reader.readAsArrayBuffer(audioBlob);
-        };
-
-        document.getElementById('start').addEventListener('click', async () => {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-
-            mediaRecorder.ondataavailable = (event) => {
-                ws.send(event.data);
-            };
-
-            mediaRecorder.start(100); // تجميع البيانات كل 100 ملي ثانية
-        });
-
-        document.getElementById('stop').addEventListener('click', () => {
-            mediaRecorder.stop();
-        });
-    </script>
+    <h1>islam DZ</h1>
+    <div class="buttons">
+        <button id="start" class="B"><h1>Start</h1></button>
+        <button id="stop" class="F"><h1>Stop</h1></button>
+    </div>
+    <script src="/index.js"></script>
 </body>
 </html>
