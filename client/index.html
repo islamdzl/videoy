@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Stream</title>
+</head>
+<body style="background-color: black; color: aliceblue;">
+    <h1>Audio Stream ISLAM DZL</h1>
+    <button id="start">Start Streaming</button>
+    <button id="stop">Stop Streaming</button>
+    <audio id="audioPlayer" controls></audio>
+    <script>
+        const ws = new WebSocket('wss://sounder.onrender.com');
+        const audioPlayer = document.getElementById('audioPlayer');
+        let mediaRecorder;
+        let audioChunks = [];
+
+        ws.onmessage = (event) => {
+            const audioBlob = new Blob([event.data], { type: 'audio/webm' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            audioPlayer.src = audioUrl;
+            audioPlayer.play();
+        };
+
+        document.getElementById('start').addEventListener('click', async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+
+            mediaRecorder.ondataavailable = (event) => {
+                ws.send(event.data);
+            };
+
+            mediaRecorder.start(100); // تجميع البيانات كل 100 ملي ثانية
+        });
+
+        document.getElementById('stop').addEventListener('click', () => {
+            mediaRecorder.stop();
+        });
+    </script>
+</body>
+</html>
