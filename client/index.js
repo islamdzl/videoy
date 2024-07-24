@@ -1,4 +1,4 @@
-const ws = new WebSocket('wss://https://sounder.onrender.com/');
+const ws = new WebSocket('wss://sounder.onrender.com/');
 const audioPlayer = document.getElementById('audioPlayer');
 let mediaRecorder;
 let mediaSource;
