@@ -1,19 +1,19 @@
+const video = document.getElementById('video');
+let mediaSource;
+let sourceBuffer;
 const ws = new WebSocket('wss://sounder.onrender.com');
-const audioPlayer = document.getElementById('audioPlayer');
-
 
 ws.onopen = () => {
     mediaSource = new MediaSource();
-    audioPlayer.src = URL.createObjectURL(mediaSource);
+    video.src = URL.createObjectURL(mediaSource);
 
     mediaSource.addEventListener('sourceopen', () => {
-        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=opus');
+        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8,opus');
         sourceBuffer.mode = 'sequence';
     });
 };
-
 ws.onmessage = (event) => {
-    const audioBlob = new Blob([event.data], { type: 'video/webm' });
+    const videoBlob = new Blob([event.data], { type: 'video/webm' });
     const reader = new FileReader();
 
     reader.onload = () => {
@@ -21,5 +21,5 @@ ws.onmessage = (event) => {
         sourceBuffer.appendBuffer(arrayBuffer);
     };
 
-    reader.readAsArrayBuffer(audioBlob);
+    reader.readAsArrayBuffer(videoBlob);
 };
