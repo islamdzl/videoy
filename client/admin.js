@@ -7,13 +7,13 @@ ws.onopen = () => {
     audioPlayer.src = URL.createObjectURL(mediaSource);
 
     mediaSource.addEventListener('sourceopen', () => {
-        sourceBuffer = mediaSource.addSourceBuffer('audio/webm; codecs=opus');
+        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=opus');
         sourceBuffer.mode = 'sequence';
     });
 };
 
 ws.onmessage = (event) => {
-    const audioBlob = new Blob([event.data], { type: 'audio/webm' });
+    const audioBlob = new Blob([event.data], { type: 'video/webm' });
     const reader = new FileReader();
 
     reader.onload = () => {

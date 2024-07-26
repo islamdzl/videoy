@@ -9,25 +9,17 @@ ws.onopen = () => {
     audioPlayer.src = URL.createObjectURL(mediaSource);
 
     mediaSource.addEventListener('sourceopen', () => {
-        sourceBuffer = mediaSource.addSourceBuffer('audio/webm; codecs=opus');
+        sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=opus');
         sourceBuffer.mode = 'sequence';
     });
 };
 
 ws.onmessage = (event) => {
-    const audioBlob = new Blob([event.data], { type: 'audio/webm' });
-    const reader = new FileReader();
 
-    reader.onload = () => {
-        const arrayBuffer = reader.result;
-        sourceBuffer.appendBuffer(arrayBuffer);
-    };
-
-    reader.readAsArrayBuffer(audioBlob);
 };
 
 document.getElementById('start').addEventListener('click', async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({ video:true });
     mediaRecorder = new MediaRecorder(stream);
 
     mediaRecorder.ondataavailable = (event) => {
