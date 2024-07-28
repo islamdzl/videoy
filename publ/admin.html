@@ -63,6 +63,7 @@
     let mediaSource;
     const video = document.getElementById('video')
     const set_code  = document.getElementById('set-code')
+    const code_custom = document.getElementById('code-custom')
     const socket = new WebSocket(webSocketUrl)
     socket.onopen = ()=>{
         window.alert('connection on web socket Server!')
@@ -85,7 +86,7 @@
     }
     set_code.addEventListener('click',()=>{
         socket.send(JSON.stringify({
-            set_key:document.getElementById('code-custom').value
+            set_key:code_custom.value
         }))
     })
 </script>
