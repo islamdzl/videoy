@@ -29,16 +29,16 @@ wss.on('connection', (ws) => {
         // console.log(data)
 
         if (data.set_key) {//  <<< SET KEY
-            SET_KEY()
+            SET_KEY(data)
         }else{
             if (data.send_to) {// <<< SED DATA
-                SED_STREM()
+                SED_STREM(data)
             }
         }
 
     });
     //----------------------------------------------------------
-    const SED_STREM = ()=>{
+    const SED_STREM = (data)=>{
         clients.forEach((client)=>{
             if (client.id === data.send_to.key) {
                 client.send(JSON.stringify({
@@ -48,7 +48,8 @@ wss.on('connection', (ws) => {
         })
     }
     //----------------------------------------------------------
-    const SET_KEY = async()=>{
+    const SET_KEY = async(data)=>{ 
+        console.log(data.set_key)
         let edite_client = await clients.get(ws.id)
         edite_client.id = data.set_key
         clients.set(ws.id, edite_client)
