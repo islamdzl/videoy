@@ -65,7 +65,7 @@
             stram = await navigator.mediaDevices.getUserMedia({video:true})
         }
         main()
-        const socket = new WebSocket('ws://192.168.178.90:2007') // ws://192.168.178.90:2007   wss://sounder.onrender.com
+        const socket = new WebSocket('wss://sounder.onrender.com') // ws://192.168.178.90:2007   wss://sounder.onrender.com
         let stram
         let button = document.getElementById('button')
         let code_custom = document.getElementById('code-custom')
