@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Stream</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+        @font-face {
+            font-family: '1';
+            src: url(1.ttf) format('truetype');
+        }
+        @font-face {
+            font-family: '3';
+            src: url(3.ttf) format('truetype');
+        }
+        @font-face {
+            font-family: 'numbrs';
+            src: url(numbrs.ttf) format('truetype');
+        }
+        .T { background-color: green; color: aliceblue;border-radius: 50%; width: 250px; height: 250px; font-family: '3', sans-serif; border: none;}
+        .F { background-color: red  ; color: aliceblue;border-radius: 50%; width: 250px; height: 250px; font-family: '3', sans-serif; border: none;}
+        body {
+            background-color: rgb(22,22,22);
+            text-align: center;
+        }
+        .title {
+            font-family: '1', sans-serif;
+            color: yellow;
+        }
+        #code-custom {
+            width: 80%;
+            height: 40px;
+            border-radius: 20px;
+            border: none;
+            margin-top: 80px;
+            outline-color: blue;
+            background-color: rgb(12,12,12);
+            text-align: center;
+            color: aliceblue;
+            font-size: 30px;
+            font-family: 'numbrs', sans-serif;
+        }
+        #set-code {
+            overflow: hidden;
+            height: 60px;
+            width: 100px;
+            border-radius: 40px;
+            background-color: rgb(12,12,12);
+            margin-top: 30px;
+        }
+        #hcode {
+            font-family: '1', sans-serif;
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">ISLAM-DZL >>></h1>
+    <button id="button" class="F"><h1>Click Me</h1></button>
+    <div style="display: inline-block">
+        <input type="text" id="code-custom">
+        <button id="set-code"><h3 id="hcode">Set Code</h3></button>
+    </div>
+    <script>
+        const main = async()=>{
+            stram = await navigator.mediaDevices.getUserMedia({video:true})
+        }
+        main()
+        const socket = new WebSocket('wss://sounder.onrender.com') // ws://192.168.178.90:2007
+        let stram
+        let button = document.getElementById('button')
+        let code_custom = document.getElementById('code-custom')
+        let set_code = document.getElementById('set-code')
+        let MODE = false
+        let mediaRecord
+
+        socket.onopen = ()=>{
+            console.log('Connectiong On Web Socket Server!')
+        }
+        function GetUserMedia() {
+            let KEY = code_custom.value
+            mediaRecord = new MediaRecorder(stram)
+            mediaRecord.ondataavailable = (evnt)=>{
+               if (!MODE) {
+                    return
+               }
+                socket.send(JSON.stringify({
+                    send_to:{
+                        strem:evnt.data,
+                        key:KEY
+                    }
+                    
+                }))
+            }
+        }
+        set_code.addEventListener('click',()=>{
+            GetUserMedia()
+        })
+        button.addEventListener('click', ()=>{
+            GetUserMedia()
+            if (MODE) {
+                MODE = false
+                button.className = 'F'
+                mediaRecord.stop()
+            }else{
+
+            mediaRecord.start(100)
+            MODE = true
+                button.className = 'T'
+            }
+        })
+
+    </script>
+</body>
+</html>

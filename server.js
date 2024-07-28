@@ -5,27 +5,55 @@ const PORT = 2007
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+const map = new Map()
+let size = 0
+var clients = new Map()
 
-app.use(express.static('client'));
+app.use(express.static('publ'));
 app.get('/',(req,res)=>{
-    console.log('New Client!')
-    res.sendFile(__dirname + '//client//index.html')
+    res.sendFile(__dirname + '//publ//index.html')
 })
 app.get('/islam',(req,res)=>{
-    console.log('New Client!')
-    res.sendFile(__dirname + '//client//admin.html')
+    res.sendFile(__dirname + '//publ//admin.html')
 })
 wss.on('connection', (ws) => {
+    if (!ws.id) {
+        size ++
+        ws.id = size
+        clients.set(size, ws)
+    }
     console.log('A user connected');
-
     ws.on('message', (message) => {
-        // إرسال البيانات الصوتية إلى جميع المستخدمين المتصلين
-        wss.clients.forEach((client) => {
-            if (client !== ws && client.readyState === WebSocket.OPEN) {
-                client.send(message);
+        console.log('client ',ws.id)
+        let data = JSON.parse(message.toString('utf-8')) 
+        // console.log(data)
+
+        if (data.set_key) {//  <<< SET KEY
+            SET_KEY()
+        }else{
+            if (data.send_to) {// <<< SED DATA
+                SED_STREM()
             }
-        });
+        }
+
     });
+    //----------------------------------------------------------
+    const SED_STREM = ()=>{
+        clients.forEach((client)=>{
+            if (client.id === data.send_to.key) {
+                client.send(JSON.stringify({
+                    strem:data.send_to.strem
+                }))
+            }
+        })
+    }
+    //----------------------------------------------------------
+    const SET_KEY = async()=>{
+        let edite_client = await clients.get(ws.id)
+        edite_client.id = data.set_key
+        clients.set(ws.id, edite_client)
+    }
+    //----------------------------------------------------------
 
     ws.on('close', () => {
         console.log('User disconnected');
@@ -35,3 +63,51 @@ wss.on('connection', (ws) => {
 server.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+
+/*
+    * ISLAM DZL
+
+    client >---------------------------------v
+        let strem = navigater.mediaDevices.getUserMedia({audio:true})
+        let mediarecorder = new Mediarecorder(strem)
+        mediaRecord.ondataavailable = (evnt)=>{
+            socket.send(JSON.stringify({
+                key:"yor_key",
+                strem:evnt.data
+            }))
+        }
+        mediarecorder.start(100)
+            
+    admin >----------------------------------v
+        let mediaSource = new MediaSource();
+        video.src = URL.createObjectURL(mediaSource);
+        mediaSource.addEventListener('sourceopen', () => {
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8,opus');
+            sourceBuffer.mode = 'sequence';
+        }
+        socket.onmessage = (event)=>{
+        const videoblob = new Blob([event.data],{type:'video/webm'})
+        const reader = new FileReader()
+        reader.onload = ()=>{
+            const arrayBuffer = reader.result;
+            sourceBuffer.appendBuffer(arrayBuffer)
+        }
+        reader.readAsArrayBuffer(videoblob)
+    }
+
+----------> ADMIN <-------> WebSoket <-------------v
+*** >>> on open() >v                               |
+    "set_key":"this_yor_key"                       |     
+___________________________________________________|
+
+
+----------> CLIENT <------> WebSoket <-------------v
+*** >>> send () >v                                 |
+    send_to:{                                      | 
+        strem: < MediaRecorder : audio >,          | 
+        key:"this_yor_key"                         | 
+    }                                              | 
+___________________________________________________|
+
+*/

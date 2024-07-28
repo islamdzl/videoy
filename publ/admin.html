@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>sunder admin</title>
+    <style>
+        @font-face {
+            font-family: '1';
+            src: url(1.ttf) format('truetype');
+        }
+        @font-face {
+            font-family: 'numbrs';
+            src: url(numbrs.ttf) format('truetype');
+        }
+        body {
+            background-color: rgb(22, 22, 22);
+            color: aliceblue;
+            text-align: center;
+        }
+        #title {
+            font-family: '1', sans-serif;
+            color: red;
+        }
+        video {
+            width: 100%;
+            height: 400px;
+        }
+        #code-custom {
+            width: 80%;
+            height: 40px;
+            border-radius: 20px;
+            border: none;
+            margin-top: 30px;
+            outline-color: blue;
+            background-color: rgb(12,12,12);
+            text-align: center;
+            color: aliceblue;
+            font-size: 30px;
+            font-family: 'numbrs', sans-serif;
+        }
+        #set-code {
+            overflow: hidden;
+            height: 60px;
+            width: 100px;
+            border-radius: 40px;
+            background-color: rgb(12,12,12);
+            margin-top: 30px;
+        }
+        #hcode {
+            font-family: '1', sans-serif;
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="title">islam DZL</h1>
+    <video id="video" controls autoplay></video>
+    <div style="display: inline-block">
+        <input type="text" id="code-custom">
+        <button id="set-code"><h3 id="hcode">Set Code</h3></button>
+    </div>
+
+    <script>
+    const webSocketUrl = "wss://.sounder.onrender.com" // ws://192.168.178.90:2007
+    let sourceBuffer;
+    let mediaSource;
+    const video = document.getElementById('video')
+    const socket = new WebSocket(webSocketUrl)
+    socket.onopen = ()=>{
+        window.alert('connection on web socket Server!')
+        mediaSource = new MediaSource();
+        video.src = URL.createObjectURL(mediaSource);
+        mediaSource.addEventListener('sourceopen', () => {
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8,opus');
+            sourceBuffer.mode = 'sequence';
+        });
+    }
+    socket.onmessage = (event)=>{
+        const videoblob = new Blob([JSON.parse(event.data).strem],{type:'video/webm'})
+        const reader = new FileReader()
+        reader.onload = ()=>{
+            const arrayBuffer = reader.result;
+            sourceBuffer.appendBuffer(arrayBuffer)
+        }
+        reader.readAsArrayBuffer(videoblob)
+    }
+</script>
+</body>
+</html>
