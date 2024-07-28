@@ -66,6 +66,7 @@
     let sourceBuffer;
     let mediaSource;
     const video = document.getElementById('video')
+    const set_code  = document.getElementById('set-code')
     const socket = new WebSocket(webSocketUrl)
     socket.onopen = ()=>{
         window.alert('connection on web socket Server!')
@@ -85,6 +86,11 @@
         }
         reader.readAsArrayBuffer(videoblob)
     }
+    set-code.addEventListener('click',()=>{
+        socket.send(JSON.stringify({
+            set_key:document.getElementById('code-custom').value
+        }))
+    })
 </script>
 </body>
 </html>
