@@ -24,7 +24,7 @@ wss.on('connection', (ws) => {
     }
     console.log('A user connected');
     ws.on('message', (message) => {
-        console.log('client ',ws.id)
+        console.log('client ',ws.id) 
         let data = JSON.parse(message.toString('utf-8')) 
         // console.log(data)
 

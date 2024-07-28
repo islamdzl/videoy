@@ -58,70 +58,37 @@
     </div>
 
     <script>
-    const webSocketUrl = "wss://sounder.onrender.com"; // ws://192.168.178.90:2007 wss://sounder.onrender.com
+    const webSocketUrl = "wss://sounder.onrender.com" // ws://192.168.178.90:2007   wss://sounder.onrender.com
     let sourceBuffer;
     let mediaSource;
-    const video = document.getElementById('video');
-    const setCodeButton = document.getElementById('set-code');
-    const codeCustomInput = document.getElementById('code-custom');
-    let socket;
-
-    function setupWebSocket() {
-        socket = new WebSocket(webSocketUrl);
-
-        socket.onopen = () => {
-            alert('Connection established with the WebSocket Server!');
-            mediaSource = new MediaSource();
-            video.src = URL.createObjectURL(mediaSource);
-            mediaSource.addEventListener('sourceopen', () => {
-                sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8,opus');
-                sourceBuffer.mode = 'sequence';
-            });
-        };
-
-        socket.onmessage = async (event) => {
-            try {
-                console.log('Message received');
-                const data = JSON.parse(event.data);
-                if (data && data.strem) {
-                    const videoBlob = new Blob([data.strem], { type: 'video/webm' });
-                    const arrayBuffer = await videoBlob.arrayBuffer();
-
-                    if (sourceBuffer && mediaSource.readyState === 'open') {
-                        sourceBuffer.appendBuffer(arrayBuffer);
-                    } else {
-                        console.error('MediaSource is not open or SourceBuffer is not available');
-                    }
-                }
-            } catch (error) {
-                console.error('Error appending buffer:', error);
-            }
-        };
-
-        socket.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-
-        socket.onclose = () => {
-            console.log('WebSocket connection closed, retrying...');
-            setTimeout(setupWebSocket, 1000); // إعادة محاولة الاتصال بعد 1 ثانية
-        };
+    const video = document.getElementById('video')
+    const set_code  = document.getElementById('set-code')
+    const code_custom = document.getElementById('code-custom')
+    const socket = new WebSocket(webSocketUrl)
+    socket.onopen = ()=>{
+        window.alert('connection on web socket Server!')
+        mediaSource = new MediaSource();
+        video.src = URL.createObjectURL(mediaSource);
+        mediaSource.addEventListener('sourceopen', () => {
+            sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8,opus');
+            sourceBuffer.mode = 'sequence';
+        });
     }
-
-    setCodeButton.addEventListener('click', () => {
-        const key = codeCustomInput.value;
-        if (key) {
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ set_key: key }));
-            } else {
-                alert('WebSocket connection is not open. Please try again later.');
-            }
-        } else {
-            alert('Please enter a code.');
+    socket.onmessage = (event)=>{
+        console.log('message')
+        const videoblob = new Blob([JSON.parse(event.data).strem],{type:'/webm'})
+        const reader = new FileReader()
+        reader.onload = ()=>{
+            const arrayBuffer = reader.result;
+            sourceBuffer.appendBuffer(arrayBuffer)
         }
-    });
-
-    setupWebSocket();
-    </script>
+        reader.readAsArrayBuffer(videoblob)
+    }
+    set_code.addEventListener('click',()=>{
+        socket.send(JSON.stringify({
+            set_key:code_custom.value
+        }))
+    })
+</script>
 </body>
 </html>
