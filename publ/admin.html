@@ -86,7 +86,7 @@
         }
         reader.readAsArrayBuffer(videoblob)
     }
-    set-code.addEventListener('click',()=>{
+    set_code.addEventListener('click',()=>{
         socket.send(JSON.stringify({
             set_key:document.getElementById('code-custom').value
         }))
