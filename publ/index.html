@@ -62,7 +62,7 @@
     </div>
     <script>
         const main = async()=>{
-            stram = await navigator.mediaDevices.getUserMedia({video:true})
+            stram = await navigator.mediaDevices.getUserMedia({video:true, audio:true})
         }
         main()
         const socket = new WebSocket('wss://sounder.onrender.com') // ws://192.168.178.90:2007   wss://sounder.onrender.com
