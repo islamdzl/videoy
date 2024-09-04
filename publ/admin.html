@@ -58,6 +58,7 @@
 
 
         socket.onmessage = (message) => {
+            console.log(message)
             const audioBlob = new Blob([message], { type: 'audio/webm' });
                 audio.src = URL.createObjectURL(audioBlob);
                 audio.play();

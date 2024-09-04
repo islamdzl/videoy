@@ -18,7 +18,7 @@ app.get('/admin', (req, res) => {
 wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         var data 
-        data = JSON.parse(message);
+        data = JSON.parse(message.data);
         log('new message ',data)
         switch (true) {
             case (typeof data.set_key != 'undefined'):
@@ -28,9 +28,7 @@ wss.on('connection', (ws) => {
                 break;
                 default:
                 if (CLIENTS) {
-                    CLIENTS.send(JSON.stringify({
-                        data
-                    }))
+                    CLIENTS.send(data)
                 log('send to : default')
                 }else{log('no client : default')}
                 break;
