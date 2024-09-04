@@ -5,8 +5,7 @@ const PORT = 2007;
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const clients = new Map();
-
+var ALL_CLIENTS = {}
 app.use(express.static('publ'));
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/publ/index.html');
@@ -18,22 +17,24 @@ app.get('/admin', (req, res) => {
 wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         const data = JSON.parse(message);
-        if (data.set_key) {
-            clients.set(ws, data.set_key);
-            console.log('Key set:', data.set_key);
-        } else if (data.send_to) {
-            const key = data.send_to.key;
-            clients.forEach((value, client) => {
-                if (value === key) {
-                    client.send(JSON.stringify({ stream: data.send_to.stream }));
+        switch (true) {
+            case (typeof data.send_to != 'undefined'):
+                if (ALL_CLIENTS[data.send_to.key]) {
+                    ALL_CLIENTS[data.send_to.key].send(JSON.stringify({
+                        stream:data.send_to.stream
+                    }))
                 }
-            });
+                break;
+            case (typeof data.set_key != 'undefined'):
+                ws.id = data.set_key
+                ALL_CLIENTS[data.set_key] = ws 
+            break;
         }
     });
 
     ws.on('close', () => {
-        clients.delete(ws);
         console.log('Client disconnected');
+        delete ALL_CLIENTS[ws.id]
     });
 });
 
