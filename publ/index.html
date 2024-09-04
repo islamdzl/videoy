@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Video Stream</title>
     <style>
-        /* أضف هنا أسلوب CSS حسب رغبتك */
         body {
             background-color: #161616;
             text-align: center;
@@ -58,21 +57,13 @@
         <button id="set-code">Set Code</button>
     </div>
     <script>
-        const socket = new WebSocket('wss://videoy.onrender.com'); // تأكد من صحة عنوان الخادم
+        const socket = new WebSocket('wss://sounder.onrender.com'); // تأكد من صحة عنوان الخادم
         let mediaRecorder;
         let stream;
         let isRecording = false;
         const codeCustom = document.getElementById('code-custom');
         const setCodeButton = document.getElementById('set-code');
         const button = document.getElementById('button');
-
-        socket.onopen = () => {
-            console.log('WebSocket connection opened');
-        };
-
-        socket.onclose = () => {
-            console.log('WebSocket connection closed');
-        };
 
         async function startStream() {
             stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -95,7 +86,9 @@
         }
 
         function stopRecording() {
-            mediaRecorder.stop();
+            if (mediaRecorder) {
+                mediaRecorder.stop();
+            }
         }
 
         button.addEventListener('click', () => {

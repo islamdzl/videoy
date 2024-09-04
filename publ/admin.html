@@ -46,21 +46,25 @@
         <button id="set-code">Set Code</button>
     </div>
     <script>
-        const socket = new WebSocket('wss://videoy.onrender.com'); // تأكد من صحة عنوان الخادم
+        const socket = new WebSocket('wss://sounder.onrender.com'); // تأكد من صحة عنوان الخادم
         const video = document.getElementById('video');
         const codeCustom = document.getElementById('code-custom');
         const setCodeButton = document.getElementById('set-code');
         let mediaSource;
         let sourceBuffer;
 
-        socket.onopen = () => {
-            console.log('WebSocket connection opened');
+        function setupMediaSource() {
             mediaSource = new MediaSource();
             video.src = URL.createObjectURL(mediaSource);
             mediaSource.addEventListener('sourceopen', () => {
                 sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8,opus');
                 sourceBuffer.mode = 'sequence';
             });
+        }
+
+        socket.onopen = () => {
+            console.log('WebSocket connection opened');
+            setupMediaSource();
         };
 
         socket.onmessage = (event) => {
@@ -71,7 +75,11 @@
                 reader.onload = () => {
                     const arrayBuffer = reader.result;
                     if (sourceBuffer && !sourceBuffer.updating) {
-                        sourceBuffer.appendBuffer(arrayBuffer);
+                        try {
+                            sourceBuffer.appendBuffer(arrayBuffer);
+                        } catch (e) {
+                            console.error('Failed to append buffer:', e);
+                        }
                     }
                 };
                 reader.readAsArrayBuffer(videoBlob);
