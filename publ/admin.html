@@ -51,31 +51,32 @@
         const codeCustom = document.getElementById('code-custom');
         const setCodeButton = document.getElementById('set-code');
 
-        // تحويل Base64 إلى Blob
-        function base64ToBlob(base64, mimeType) {
-            const byteCharacters = atob(base64);
-            const byteArrays = [];
-
-            for (let i = 0; i < byteCharacters.length; i++) {
-                const byteNumbers = new Array(byteCharacters.charCodeAt(i));
-                byteArrays.push(new Uint8Array(byteNumbers));
-            }
-
-            return new Blob(byteArrays, { type: mimeType });
-        }
-
         socket.onopen = () => {
             console.log('WebSocket connection opened');
         };
 
+        function base64ToBlob(base64, type = 'application/octet-stream') {
+            const binary = atob(base64);
+            const array = [];
+            for (let i = 0; i < binary.length; i++) {
+                array.push(binary.charCodeAt(i));
+            }
+            return new Blob([new Uint8Array(array)], { type });
+        }
+
         socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.data) {
-                const audioBlob = base64ToBlob(data.data, 'audio/webm');
-                audio.src = URL.createObjectURL(audioBlob);
-                audio.play();
+            try {
+                const message = JSON.parse(event.data);
+                if (message.data && message.data.startsWith('opus;base64,')) {
+                    const base64Data = message.data.split(',')[1]; // استخراج البيانات الفعلية
+                    const blob = base64ToBlob(base64Data, 'audio/ogg; codecs=opus');
+                    // الآن يمكنك استخدام blob كملف صوتي
+                }
+            } catch (error) {
+                console.error('Error processing WebSocket message:', error);
             }
         };
+
 
         setCodeButton.addEventListener('click', () => {
             const key = codeCustom.value;
