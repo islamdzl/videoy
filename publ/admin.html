@@ -69,6 +69,7 @@
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
+            console.log(data)
             if (data.stream) {
                 const videoBlob = new Blob([data.stream], { type: 'video/webm' });
                 const reader = new FileReader();

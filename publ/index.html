@@ -65,6 +65,10 @@
         const setCodeButton = document.getElementById('set-code');
         const button = document.getElementById('button');
 
+        socket.onopen = ()=>{
+            console.log('connection on web socket server')
+        }
+
         async function startStream() {
             stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         }
