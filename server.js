@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 let {log} = require('console')
-var CLIENTS = {}
+var CLIENTS
 app.use(express.static('publ'));
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/publ/index.html');
@@ -17,33 +17,31 @@ app.get('/admin', (req, res) => {
 
 wss.on('connection', (ws) => {
     ws.on('message', (message) => {
-        const data = JSON.parse(message);
-        // log('new message ',data)
+        var data 
+        data = JSON.parse(message);
+        log('new message ',data)
         switch (true) {
             case (typeof data.set_key != 'undefined'):
                 ws.id = data.set_key
-                CLIENTS[data.set_key] = ws
+                CLIENTS = ws
                 log('set key : ', ws.id)
                 break;
-            case (typeof data.send_to != 'undefined'):
-                if (CLIENTS[data.send_to.key]) {
-                    CLIENTS[data.send_to.key].send(JSON.stringify({
-                        data:data.send_to.data
+                default:
+                if (CLIENTS) {
+                    CLIENTS.send(JSON.stringify({
+                        data
                     }))
-                log('send to : ', data.send_to.key )
-                }else{log('no client : ',data.send_to.key)}
-                break;
-        
-            default:
+                log('send to : default')
+                }else{log('no client : default')}
                 break;
         }
     });
 
     ws.on('close', () => {
-        if (CLIENTS[ws.id]) {
-            delete CLIENTS[ws.id]
+        if (CLIENTS && ws.id) {
+            CLIENTS = undefined
         }
-        log('delete',ws.id)
+        log('delete : default')
     });
 });
 

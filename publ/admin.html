@@ -41,51 +41,28 @@
 <body>
     <h1>Admin Page</h1>
     <audio id="audio" controls autoplay></audio>
-    <div>
+<!--     <div>
         <input type="text" id="code-custom" placeholder="Enter code">
         <button id="set-code">Set Code</button>
-    </div>
+    </div> -->
     <script>
-        const socket = new WebSocket('wss://sounder.onrender.com');
+        const socket = new WebSocket('ws://192.168.94.27:2007');
         const audio = document.getElementById('audio');
-        const codeCustom = document.getElementById('code-custom');
-        const setCodeButton = document.getElementById('set-code');
 
         socket.onopen = () => {
             console.log('WebSocket connection opened');
-        };
-
-        function base64ToBlob(base64, type = 'application/octet-stream') {
-            const binary = atob(base64);
-            const array = [];
-            for (let i = 0; i < binary.length; i++) {
-                array.push(binary.charCodeAt(i));
-            }
-            return new Blob([new Uint8Array(array)], { type });
-        }
-
-        socket.onmessage = (event) => {
-            try {
-                const message = JSON.parse(event.data);
-                if (message.data && message.data.startsWith('opus;base64,')) {
-                    const base64Data = message.data.split(',')[1]; // استخراج البيانات الفعلية
-                    const blob = base64ToBlob(base64Data, 'audio/ogg; codecs=opus');
-                    // الآن يمكنك استخدام blob كملف صوتي
-                }
-            } catch (error) {
-                console.error('Error processing WebSocket message:', error);
-            }
+            socket.send(JSON.stringify({
+                set_key:"default"
+            }))
         };
 
 
-        setCodeButton.addEventListener('click', () => {
-            const key = codeCustom.value;
-            if (socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({ set_key: key }));
-            } else {
-                console.error('WebSocket is not open. Ready state:', socket.readyState);
-            }
-        });
+        socket.onmessage = (message) => {
+            const audioBlob = new Blob([message], { type: 'audio/webm' });
+                audio.src = URL.createObjectURL(audioBlob);
+                audio.play();
+        };
+
     </script>
 </body>
 </html>

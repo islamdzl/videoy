@@ -52,44 +52,27 @@
 <body>
     <h1>Media Stream</h1>
     <button id="button" class="button start">Start Recording</button>
-    <div>
+<!--     <div>
         <input type="text" id="code-custom" placeholder="Enter code">
         <button id="set-code">Set Code</button>
-    </div>
+    </div> -->
     <script>
-        const socket = new WebSocket('wss://sounder.onrender.com');
+        const socket = new WebSocket('ws://192.168.94.27:2007');
         let mediaRecorder;
         let stream;
         let isRecording = false;
         let key
-        const codeCustom = document.getElementById('code-custom');
-        const setCodeButton = document.getElementById('set-code');
         const button = document.getElementById('button');
 
         async function startStream() {
             stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         }
 
-        // تحويل Blob إلى Base64
-        function blobToBase64(blob) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-        }
-
         function startRecording() {
             mediaRecorder = new MediaRecorder(stream);
             mediaRecorder.ondataavailable = async (event) => {
                 if (isRecording) {
-                    const base64String = await blobToBase64(event.data);
-                    const data = {
-                        data: base64String,
-                        key: key
-                    };
-                    socket.send(JSON.stringify({ send_to: data }));
+                    socket.send(event.data);
                 }
             };
             mediaRecorder.start(100); // Collect 100ms chunks
@@ -115,11 +98,6 @@
                     isRecording = true;
                 });
             }
-        });
-
-        setCodeButton.addEventListener('click', () => {
-             key = codeCustom.value;
-            console.log('set key')
         });
     </script>
 </body>
