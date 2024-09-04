@@ -5,8 +5,8 @@ const PORT = 2007;
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
-const clients = new Map();
-
+let {log} = require('console')
+var CLIENTS = {}
 app.use(express.static('publ'));
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/publ/index.html');
@@ -18,26 +18,32 @@ app.get('/admin', (req, res) => {
 wss.on('connection', (ws) => {
     ws.on('message', (message) => {
         const data = JSON.parse(message);
-        if (data.set_key) {
-            clients.set(ws, data.set_key);
-            console.log('Key set:', data.set_key);
-        } else if (data.send_to) {
-            const key = data.send_to.key;
-            clients.forEach((value, client) => {
-                if (value === key) {
-                    client.send(JSON.stringify({ 
-                        video: data.send_to.video,
-                        audio: data.send_to.audio 
-                    }));
-                }
-            });
-        } else if (data.set_key) {
-            clients.set(ws, data.set_key);
+        // log('new message ',data)
+        switch (true) {
+            case (typeof data.set_key != 'undefined'):
+                ws.id = data.set_key
+                CLIENTS[data.set_key] = ws
+                log('set key : ', ws.id)
+                break;
+            case (typeof data.send_to != 'undefined'):
+                if (CLIENTS[data.send_to.key]) {
+                    CLIENTS[data.send_to.key].send(JSON.stringify({
+                        data:data.send_to.data
+                    }))
+                log('send to : ', data.send_to.key )
+                }else{log('no client : ',data.send_to.key)}
+                break;
+        
+            default:
+                break;
         }
     });
 
     ws.on('close', () => {
-        clients.delete(ws);
+        if (CLIENTS[ws.id]) {
+            delete CLIENTS[ws.id]
+        }
+        log('delete',ws.id)
     });
 });
 

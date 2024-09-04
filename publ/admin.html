@@ -40,76 +40,40 @@
 </head>
 <body>
     <h1>Admin Page</h1>
-    <video id="video" controls autoplay></video>
     <audio id="audio" controls autoplay></audio>
     <div>
         <input type="text" id="code-custom" placeholder="Enter code">
         <button id="set-code">Set Code</button>
     </div>
     <script>
-        const socket = new WebSocket('wss://videoy.onrender.com');
-        const video = document.getElementById('video');
+        const socket = new WebSocket('wss://sounder.onrender.com');
         const audio = document.getElementById('audio');
         const codeCustom = document.getElementById('code-custom');
         const setCodeButton = document.getElementById('set-code');
-        let mediaSourceVideo;
-        let mediaSourceAudio;
-        let sourceBufferVideo;
-        let sourceBufferAudio;
 
-        function setupMediaSource() {
-            mediaSourceVideo = new MediaSource();
-            mediaSourceAudio = new MediaSource();
+        // تحويل Base64 إلى Blob
+        function base64ToBlob(base64, mimeType) {
+            const byteCharacters = atob(base64);
+            const byteArrays = [];
 
-            video.srcObject = mediaSourceVideo.stream;
-            audio.srcObject = mediaSourceAudio.stream;
-
-            mediaSourceVideo.addEventListener('sourceopen', () => {
-                sourceBufferVideo = mediaSourceVideo.addSourceBuffer('video/webm; codecs=vp8,opus');
-                sourceBufferVideo.mode = 'sequence';
-            });
-
-            mediaSourceAudio.addEventListener('sourceopen', () => {
-                sourceBufferAudio = mediaSourceAudio.addSourceBuffer('audio/webm; codecs=opus');
-                sourceBufferAudio.mode = 'sequence';
-            });
-        }
-
-        function appendBuffer(mediaSource, sourceBuffer, data) {
-            if (sourceBuffer && !sourceBuffer.updating) {
-                try {
-                    sourceBuffer.appendBuffer(data);
-                } catch (e) {
-                    console.error('Failed to append buffer:', e);
-                }
+            for (let i = 0; i < byteCharacters.length; i++) {
+                const byteNumbers = new Array(byteCharacters.charCodeAt(i));
+                byteArrays.push(new Uint8Array(byteNumbers));
             }
+
+            return new Blob(byteArrays, { type: mimeType });
         }
 
         socket.onopen = () => {
             console.log('WebSocket connection opened');
-            setupMediaSource();
         };
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            if (data.video) {
-                const videoBlob = new Blob([data.video], { type: 'video/webm' });
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const arrayBuffer = reader.result;
-                    appendBuffer(mediaSourceVideo, sourceBufferVideo, arrayBuffer);
-                };
-                reader.readAsArrayBuffer(videoBlob);
-            }
-
-            if (data.audio) {
-                const audioBlob = new Blob([data.audio], { type: 'audio/webm' });
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const arrayBuffer = reader.result;
-                    appendBuffer(mediaSourceAudio, sourceBufferAudio, arrayBuffer);
-                };
-                reader.readAsArrayBuffer(audioBlob);
+            if (data.data) {
+                const audioBlob = base64ToBlob(data.data, 'audio/webm');
+                audio.src = URL.createObjectURL(audioBlob);
+                audio.play();
             }
         };
 
