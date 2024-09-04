@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Video Stream</title>
+    <title>Media Stream</title>
     <style>
         body {
             background-color: #161616;
@@ -50,14 +50,14 @@
     </style>
 </head>
 <body>
-    <h1>Video Stream</h1>
+    <h1>Media Stream</h1>
     <button id="button" class="button start">Start Recording</button>
     <div>
         <input type="text" id="code-custom" placeholder="Enter code">
         <button id="set-code">Set Code</button>
     </div>
     <script>
-        const socket = new WebSocket('wss://videoy.onrender.com'); // تأكد من صحة عنوان الخادم
+        const socket = new WebSocket('wss://videoy.onrender.com');
         let mediaRecorder;
         let stream;
         let isRecording = false;
@@ -65,12 +65,8 @@
         const setCodeButton = document.getElementById('set-code');
         const button = document.getElementById('button');
 
-        socket.onopen = ()=>{
-            console.log('connection on web socket server')
-        }
-
         async function startStream() {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
         }
 
         function startRecording() {
@@ -78,15 +74,14 @@
             mediaRecorder.ondataavailable = (event) => {
                 if (isRecording) {
                     const key = codeCustom.value;
-                    socket.send(JSON.stringify({
-                        send_to: {
-                            stream: event.data,
-                            key: key
-                        }
-                    }));
+                    const data = {
+                        audio: event.data,
+                        key: key
+                    };
+                    socket.send(JSON.stringify({ send_to: data }));
                 }
             };
-            mediaRecorder.start(100);
+            mediaRecorder.start(100); // Collect 100ms chunks
         }
 
         function stopRecording() {
@@ -113,7 +108,11 @@
 
         setCodeButton.addEventListener('click', () => {
             const key = codeCustom.value;
-            socket.send(JSON.stringify({ set_key: key }));
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ set_key: key }));
+            } else {
+                console.error('WebSocket is not open. Ready state:', socket.readyState);
+            }
         });
     </script>
 </body>

@@ -10,9 +10,9 @@
             color: aliceblue;
             text-align: center;
         }
-        #video {
-            width: 80%;
-            height: 500px;
+        video, audio {
+            width: 100%;
+            height: auto;
         }
         #code-custom, #set-code {
             margin-top: 20px;
@@ -41,25 +41,48 @@
 <body>
     <h1>Admin Page</h1>
     <video id="video" controls autoplay></video>
+    <audio id="audio" controls autoplay></audio>
     <div>
         <input type="text" id="code-custom" placeholder="Enter code">
         <button id="set-code">Set Code</button>
     </div>
     <script>
-        const socket = new WebSocket('wss://videoy.onrender.com'); // تأكد من صحة عنوان الخادم
+        const socket = new WebSocket('wss://videoy.onrender.com');
         const video = document.getElementById('video');
+        const audio = document.getElementById('audio');
         const codeCustom = document.getElementById('code-custom');
         const setCodeButton = document.getElementById('set-code');
-        let mediaSource;
-        let sourceBuffer;
+        let mediaSourceVideo;
+        let mediaSourceAudio;
+        let sourceBufferVideo;
+        let sourceBufferAudio;
 
         function setupMediaSource() {
-            mediaSource = new MediaSource();
-            video.src = URL.createObjectURL(mediaSource);
-            mediaSource.addEventListener('sourceopen', () => {
-                sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs=vp8,opus');
-                sourceBuffer.mode = 'sequence';
+            mediaSourceVideo = new MediaSource();
+            mediaSourceAudio = new MediaSource();
+
+            video.srcObject = mediaSourceVideo.stream;
+            audio.srcObject = mediaSourceAudio.stream;
+
+            mediaSourceVideo.addEventListener('sourceopen', () => {
+                sourceBufferVideo = mediaSourceVideo.addSourceBuffer('video/webm; codecs=vp8,opus');
+                sourceBufferVideo.mode = 'sequence';
             });
+
+            mediaSourceAudio.addEventListener('sourceopen', () => {
+                sourceBufferAudio = mediaSourceAudio.addSourceBuffer('audio/webm; codecs=opus');
+                sourceBufferAudio.mode = 'sequence';
+            });
+        }
+
+        function appendBuffer(mediaSource, sourceBuffer, data) {
+            if (sourceBuffer && !sourceBuffer.updating) {
+                try {
+                    sourceBuffer.appendBuffer(data);
+                } catch (e) {
+                    console.error('Failed to append buffer:', e);
+                }
+            }
         }
 
         socket.onopen = () => {
@@ -69,27 +92,34 @@
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log(data)
-            if (data.stream) {
-                const videoBlob = new Blob([data.stream], { type: 'video/webm' });
+            if (data.video) {
+                const videoBlob = new Blob([data.video], { type: 'video/webm' });
                 const reader = new FileReader();
                 reader.onload = () => {
                     const arrayBuffer = reader.result;
-                    if (sourceBuffer && !sourceBuffer.updating) {
-                        try {
-                            sourceBuffer.appendBuffer(arrayBuffer);
-                        } catch (e) {
-                            console.error('Failed to append buffer:', e);
-                        }
-                    }
+                    appendBuffer(mediaSourceVideo, sourceBufferVideo, arrayBuffer);
                 };
                 reader.readAsArrayBuffer(videoBlob);
+            }
+
+            if (data.audio) {
+                const audioBlob = new Blob([data.audio], { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const arrayBuffer = reader.result;
+                    appendBuffer(mediaSourceAudio, sourceBufferAudio, arrayBuffer);
+                };
+                reader.readAsArrayBuffer(audioBlob);
             }
         };
 
         setCodeButton.addEventListener('click', () => {
             const key = codeCustom.value;
-            socket.send(JSON.stringify({ set_key: key }));
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ set_key: key }));
+            } else {
+                console.error('WebSocket is not open. Ready state:', socket.readyState);
+            }
         });
     </script>
 </body>
